@@ -18,8 +18,8 @@ struct items{
 
 
 fn main() {
-    let mut p1inv:items = items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
-    let mut p2inv:items = items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
+    let mut p1inv:items = items{beers: 1, knives: 0, magnify: 0, cuffs: 0};
+    let mut p2inv:items = items{beers: 1, knives: 0, magnify: 0, cuffs: 0};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:u8 = 4;
     let mut p2health:u8 = 4;
@@ -51,9 +51,34 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         print!("enter a valid option: ");
         std::io::stdout().flush().unwrap();
     };
+    let sheindx:usize = thread_rng().gen_range(0..shells.len());
+    let doubledamage:bool = false;
+    if buff == 'b'{
+        if *p1turn{
+            if p1inv.beers <= 0{
+                println!("not enough beer");
+                thread::sleep(Duration::from_millis(1300));
+                return;
+            }
+            p1inv.beers -=1;
+        }
+        else if !*p1turn {
+            if p2inv.beers <= 0{
+                println!("not enough beer");
+                thread::sleep(Duration::from_millis(1300));
+                return;
+            }
+            p2inv.beers -=1;
+        }
+        println!("the shell was {}", shells.remove(sheindx));
+        thread::sleep(Duration::from_millis(1300));
+        if shells.len() == 0{newshells(shells);}
+        return;
+    }
+
     if *p1turn{
         *p1turn = false;
-        if buff == 's'{
+        if buff == 's'|| buff =='o' {
             print!(".");
             std::io::stdout().flush().unwrap();
             thread::sleep(Duration::from_millis(1000));
@@ -63,14 +88,17 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
             println!(".");
             std::io::stdout().flush().unwrap();
             thread::sleep(Duration::from_millis(1000));
-            let sheindx:usize = thread_rng().gen_range(0..shells.len());
+
             if shells[sheindx]{
-                *p1health-=1;
                 println!("BANG!");
+                if buff == 's'{*p1health-=1;}
+                else{*p2health-=1;}
             }
             else{
                 println!("CLICK!");
-                *p1turn = true;
+                if buff=='s'{
+                    *p1turn = true;
+                }
             }
             shells.remove(sheindx);
             thread::sleep(Duration::from_millis(1500));
@@ -82,7 +110,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
     }
     else{
         *p1turn = true;
-        if buff == 's'{
+        if buff == 's'|| buff =='o' {
             print!(".");
             std::io::stdout().flush().unwrap();
             thread::sleep(Duration::from_millis(1000));
@@ -94,12 +122,15 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
             thread::sleep(Duration::from_millis(1000));
             let sheindx:usize = thread_rng().gen_range(0..shells.len());
             if shells[sheindx]{
-                *p2health-=1;
                 println!("BANG!");
+                if buff == 's'{*p2health-=1;}
+                else{*p1health-=1;}
             }
             else{
                 println!("CLICK!");
-                *p1turn = false;
+                if buff=='s'{
+                    *p1turn = false;
+                }
             }
             shells.remove(sheindx);
             thread::sleep(Duration::from_millis(1500));
@@ -116,6 +147,13 @@ fn newshells(shells: &mut Vec<bool>){
     clearscreen::clear().unwrap();
     println!("loading shells...");
     let amount:usize = thread_rng().gen_range(2..=8);
+    if amount == 2{
+        shells.push(true);
+        shells.push(false);
+        println!("true false");
+        thread::sleep(Duration::from_secs(1));
+        return;
+    }
     for i in 0..amount{
         shells.push(rand::random());
     }
