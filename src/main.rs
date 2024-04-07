@@ -4,10 +4,7 @@ use rand::{self, thread_rng, Rng};
 use clearscreen;
 
 //true = live
-
-// sleep(Duration::from_millis(1000));
-
-// let mut dealerinv:items = items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
+//switch to fastrand for smalr exe
 
 struct items{
     beers:u8,
@@ -207,5 +204,5 @@ fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &items, p2inv: &items, p1t
     if *damage > 1{
         println!("\nDOUBLE DAMAGE!");
     }
-    println!("\n\n");
+    println!("\n");
 }
