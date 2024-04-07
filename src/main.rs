@@ -18,21 +18,22 @@ struct items{
 
 
 fn main() {
-    let mut p1inv:items = items{beers: 1, knives: 0, magnify: 0, cuffs: 0};
-    let mut p2inv:items = items{beers: 1, knives: 0, magnify: 0, cuffs: 0};
+    let mut p1inv:items = items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
+    let mut p2inv:items = items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:u8 = 4;
     let mut p2health:u8 = 4;
     let mut p1turn:bool = true;
+    let mut damage: u8 = 1;
     newshells(&mut shells);
     loop{
-        displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn);
+        displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage);
         println!("{:?}", shells);
-        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health);
+        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health, &mut damage);
     }
 }
 
-fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8){
+fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8, damage: &mut u8){
     println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN");
     println!("[S]ELF: shoot self, get an extra turn if blank");
     println!("[O]PPONENT: shoot opponent\n");
@@ -52,7 +53,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         std::io::stdout().flush().unwrap();
     };
     let sheindx:usize = thread_rng().gen_range(0..shells.len());
-    let doubledamage:bool = false;
+    
     if buff == 'b'{
         if *p1turn{
             if p1inv.beers <= 0{
@@ -62,7 +63,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
             }
             p1inv.beers -=1;
         }
-        else if !*p1turn {
+        else {
             if p2inv.beers <= 0{
                 println!("not enough beer");
                 thread::sleep(Duration::from_millis(1300));
@@ -76,6 +77,27 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         return;
     }
 
+    if buff == 'k'{
+        if *p1turn{
+            if p1inv.knives <= 0{
+                println!("not enough knives");
+                thread::sleep(Duration::from_millis(1300));
+                return;
+            }
+            p1inv.knives-=1;
+            *damage = 2;
+        }
+        else{
+            if p2inv.knives <= 0{
+                println!("not enough knives");
+                thread::sleep(Duration::from_millis(1300));
+                return;
+            }
+            p2inv.knives-=1;
+            *damage = 2;
+        }
+        return;
+    }
     if *p1turn{
         *p1turn = false;
         if buff == 's'|| buff =='o' {
@@ -91,8 +113,8 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
 
             if shells[sheindx]{
                 println!("BANG!");
-                if buff == 's'{*p1health-=1;}
-                else{*p2health-=1;}
+                if buff == 's'{*p1health-=*damage;}
+                else{*p2health-=*damage;}
             }
             else{
                 println!("CLICK!");
@@ -101,6 +123,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
                 }
             }
             shells.remove(sheindx);
+            *damage = 1;
             thread::sleep(Duration::from_millis(1500));
         }
         if shells.len() == 0{
@@ -123,8 +146,8 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
             let sheindx:usize = thread_rng().gen_range(0..shells.len());
             if shells[sheindx]{
                 println!("BANG!");
-                if buff == 's'{*p2health-=1;}
-                else{*p1health-=1;}
+                if buff == 's'{*p2health-=*damage;}
+                else{*p1health-=*damage;}
             }
             else{
                 println!("CLICK!");
@@ -133,6 +156,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
                 }
             }
             shells.remove(sheindx);
+            *damage = 1;
             thread::sleep(Duration::from_millis(1500));
         }
         if shells.len() == 0{
@@ -165,7 +189,7 @@ fn newshells(shells: &mut Vec<bool>){
     thread::sleep(Duration::from_millis((amount*500) as u64));
 }
 
-fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &items, p2inv: &items, p1turn: &bool){
+fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &items, p2inv: &items, p1turn: &bool, damage: &u8){
     clearscreen::clear().unwrap();
     if *p1turn{
         println!("    TURN    PLAYER 1:");
@@ -179,6 +203,9 @@ fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &items, p2inv: &items, p1t
         println!("\n    TURN    PLAYER 2:");
         println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs);
 
+    }
+    if *damage > 1{
+        println!("\nDOUBLE DAMAGE!");
     }
     println!("\n\n");
 }
