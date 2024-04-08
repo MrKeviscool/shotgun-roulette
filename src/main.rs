@@ -29,16 +29,6 @@ fn main() {
     let mut p2roundwon: u8 = 0;
     newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
     loop{
-        if p1roundwon+p2roundwon > 2{
-            if p1roundwon > p2roundwon{
-                endgame(true);
-            }
-            else{
-                endgame(false);
-            }
-            break;
-        }
-
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage, p1roundwon+p2roundwon);
         println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: skips opponents turn [D]URRY: restore 1 health");
         println!("[S]ELF: shoot self, get an extra turn if blank");
@@ -239,8 +229,18 @@ fn main() {
             }
         }
         magnified = -1;
-        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon)
-        {newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
+        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon){
+            if p1roundwon+p2roundwon > 2{
+                if p1roundwon > p2roundwon{
+                    endgame(true);
+                }
+                else{
+                    endgame(false);
+                }
+                break;
+            }    
+            newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
+        }
         
     }
     
