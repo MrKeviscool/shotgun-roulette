@@ -1,5 +1,5 @@
 use core::time::Duration;
-use std::{f32::consts::E, io::Write, thread};
+use std::{io::Write, thread};
 use rand::{self, thread_rng, Rng};
 use clearscreen;
 
@@ -10,13 +10,14 @@ struct Items{
     beers:u8,
     knives:u8,
     magnify:u8,
-    cuffs:u8
+    cuffs:u8,
+    durrys:u8
 }
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
-    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
+    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
+    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:i8 = 1;
     let mut p2health:i8 = 1;
@@ -32,7 +33,7 @@ fn main() {
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage, p1roundwon+p2roundwon);
         println!("{:?}", shells);// debug
 
-        println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN");
+        println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN [D]URRY: restore 1 health");
         println!("[S]ELF: shoot self, get an extra turn if blank");
         println!("[O]PPONENT: shoot opponent\n");
         print!("COMMAND: ");
@@ -44,7 +45,7 @@ fn main() {
             buff.pop();
             let buff: char = buff.to_ascii_lowercase().chars().nth(0).unwrap();
             match buff{
-                'b'|'k'|'m'|'c'|'s'|'o' => break buff,
+                'b'|'k'|'m'|'c'|'s'|'o'|'d' => break buff,
                 _ => ()
             };
             print!("enter a valid option: ");
@@ -131,7 +132,26 @@ fn main() {
                 p2inv.cuffs-=1;
             }
             thread::sleep(Duration::from_millis(STDDELAY));
+            continue;
         }
+
+        if buff == 'd'{
+            if p1turn && p1inv.durrys > 0{
+                p1health+=1;
+                p1inv.durrys-=1;
+                println!("blazed a durry, +1 health")
+            }
+            else if !p1turn && p2inv.durrys > 0{
+                p2health+=1;
+                p2inv.durrys-=1;
+                println!("blazed a durry, +1 health")
+            }
+            else{
+                println!("NOT ENOUGH DURRYS");
+            }
+            thread::sleep(Duration::from_millis(STDDELAY));
+        }
+
         if p1turn{
             if !cuffed{
                 p1turn = false;
@@ -205,7 +225,7 @@ fn main() {
             }
         }
         magnified = -1;
-        if(checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon)){newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
+        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon){newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
         
     }
     
@@ -249,18 +269,20 @@ fn main() {
         if p1roundwon+p2roundwon == 0 {return;} 
         for _ in 0..((p1roundwon+p2roundwon)*2){
             /////ADD CODE TO ADD RANDOM ITEMS TO BOTH PLAYERS INV
-            match thread_rng().gen_range(0..4) {
+            match thread_rng().gen_range(0..=4) {
                 0 => p1inv.beers+=1,
                 1 => p1inv.knives+=1,
                 2 => p1inv.magnify+=1,
                 3 => p1inv.cuffs+=1,
+                4 => p1inv.durrys+=1,
                 _ => panic!("past rnd range")
             };
-            match thread_rng().gen_range(0..4) {
+            match thread_rng().gen_range(0..=4) {
                 0 => p2inv.beers+=1,
                 1 => p2inv.knives+=1,
                 2 => p2inv.magnify+=1,
                 3 => p2inv.cuffs+=1,
+                4 => p1inv.durrys+=1,
                 _ => panic!("past rnd range")
             };
             println!("added item");
@@ -274,15 +296,15 @@ fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1t
     clearscreen::clear().unwrap();
     if *p1turn{
         println!("    TURN    PLAYER 1:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses, {}x cuffs, {}x durryss", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
         println!("\n         PLAYER 2:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
     }
     else{
         println!("           PLAYER 1:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
         println!("\n    TURN    PLAYER 2:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
 
     }
     println!("\n           ROUND: {}", round+1);
