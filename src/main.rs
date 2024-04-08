@@ -225,7 +225,8 @@ fn main() {
             }
         }
         magnified = -1;
-        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon){newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
+        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon)
+        {newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
         
     }
     
