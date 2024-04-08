@@ -18,15 +18,15 @@ fn main() {
     let mut p1inv:Items = Items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
     let mut p2inv:Items = Items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
     let mut shells:Vec<bool> = Vec::new();
-    let mut p1health:u8 = 4;
-    let mut p2health:u8 = 4;
+    let mut p1health:i8 = 4;
+    let mut p2health:i8 = 4;
     let mut p1turn:bool = true;
-    let mut damage: u8 = 1;
+    let mut damage: i8 = 1;
     let mut magnified:i8 = -1;
     let mut cuffed = false;
     let mut p1roundwon: u8 = 0;
     let mut p2roundwon: u8 = 0;
-    newshells(&mut shells);
+    newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
     loop{
 
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage);
@@ -77,7 +77,7 @@ fn main() {
             }
             println!("the shell was {}", shells.remove(sheindx));
             thread::sleep(Duration::from_millis(STDDELAY));
-            if shells.len() == 0{newshells(&mut shells);}
+            if shells.len() == 0{newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
             continue;
         }
     
@@ -151,7 +151,7 @@ fn main() {
                 thread::sleep(Duration::from_millis(1500));
             }
             if shells.len() == 0{
-                newshells(&mut shells);
+                newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
                 continue;
             }
         }
@@ -187,26 +187,30 @@ fn main() {
                 thread::sleep(Duration::from_millis(1500));
             }
             if shells.len() == 0{
-                newshells(&mut shells);
+                newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
                 continue;
             }
         }
         magnified = -1;
+        checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon);
         
     }
     
-    fn checkhealths(p1health: &mut u8, p2health: &mut u8, p1roundwon: &mut u8, p2roundwon: &mut u8){
+    fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2roundwon: &mut u8){
         if *p1health <= 0{
             *p2roundwon+=1;
+            *p1health = 4;
+            *p2health = 4;
         }
         else if *p2health <= 0{
             *p1roundwon+=1;
+            *p1health = 4;
+            *p2health = 4;
         }
-        *p1health = 4;
-        *p2health = 4;
+
     }
 
-    fn newshells(shells: &mut Vec<bool>){
+    fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1roundwon: &u8, p2roundwon: &u8){
         clearscreen::clear().unwrap();
         println!("loading shells...");
         let amount:usize = thread_rng().gen_range(2..=8);
@@ -226,10 +230,28 @@ fn main() {
         }
         std::io::stdout().flush().unwrap();
         thread::sleep(Duration::from_millis((amount*500) as u64));
+        if p1roundwon+p2roundwon == 0 {return;} 
+        for _ in 0..((p1roundwon+p2roundwon)*2){
+            /////ADD CODE TO ADD RANDOM ITEMS TO BOTH PLAYERS INV
+            match thread_rng().gen_range(0..4) {
+                0 => p1inv.beers+=1,
+                1 => p1inv.knives+=1,
+                2 => p1inv.magnify+=1,
+                3 => p1inv.cuffs+=1,
+                _ => panic!("past rnd range")
+            };
+            match thread_rng().gen_range(0..4) {
+                0 => p2inv.beers+=1,
+                1 => p2inv.knives+=1,
+                2 => p2inv.magnify+=1,
+                3 => p2inv.cuffs+=1,
+                _ => panic!("past rnd range")
+            };
+        }
     }
 }
 
-fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &Items, p2inv: &Items, p1turn: &bool, damage: &u8){
+fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1turn: &bool, damage: &i8){
     clearscreen::clear().unwrap();
     if *p1turn{
         println!("    TURN    PLAYER 1:");
