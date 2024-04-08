@@ -1,11 +1,11 @@
 use core::time::Duration;
-use std::{io::Write, thread};
+use std::{f32::consts::E, io::Write, thread};
 use rand::{self, thread_rng, Rng};
 use clearscreen;
 
 //true = live
 //switch to fastrand for smalr exe
-const STDDELAY:u64 = 1300;
+const STDDELAY:u64 = 1300; //1300
 struct Items{
     beers:u8,
     knives:u8,
@@ -15,11 +15,11 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
-    let mut p2inv:Items = Items{beers: 1, knives: 1, magnify: 0, cuffs: 0};
+    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
+    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0};
     let mut shells:Vec<bool> = Vec::new();
-    let mut p1health:i8 = 4;
-    let mut p2health:i8 = 4;
+    let mut p1health:i8 = 1;
+    let mut p2health:i8 = 1;
     let mut p1turn:bool = true;
     let mut damage: i8 = 1;
     let mut magnified:i8 = -1;
@@ -29,7 +29,7 @@ fn main() {
     newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
     loop{
 
-        displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage);
+        displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage, p1roundwon+p2roundwon);
         println!("{:?}", shells);// debug
 
         println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN");
@@ -84,7 +84,7 @@ fn main() {
         if buff == 'k'{
             if p1turn{
                 if p1inv.knives <= 0{
-                    println!("not enough knives");
+                    println!("NOT ENOUGH KNIVES");
                     thread::sleep(Duration::from_millis(STDDELAY));
                     continue;
                 }
@@ -93,7 +93,7 @@ fn main() {
             }
             else{
                 if p2inv.knives <= 0{
-                    println!("not enough knives");
+                    println!("NOT ENOUGH KNIVES");
                     thread::sleep(Duration::from_millis(STDDELAY));
                     continue;
                 }
@@ -104,8 +104,19 @@ fn main() {
         }
     
         if buff == 'm'{
-            magnified = sheindx as i8;
-            println!("there is a {} shell in the chamber", shells[magnified as usize]);
+            if p1turn && p1inv.magnify > 0{
+                magnified = sheindx as i8;
+                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                p1inv.magnify-=1;
+            }
+            else if !p1turn && p2inv.magnify > 0{
+                magnified = sheindx as i8;
+                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                p2inv.magnify-=1;
+            }
+            else{
+                println!("NOT ENOUGH MAGNIFYING GLASSES");
+            }
             thread::sleep(Duration::from_millis(STDDELAY));
             continue;
         }
@@ -113,9 +124,11 @@ fn main() {
             cuffed = true;
             if p1turn{
                 println!("player 2 cuffed, skip their turn");
+                p1inv.cuffs-=1;
             }
             else{
                 println!("player 1 cuffed, skip their turn");
+                p2inv.cuffs-=1;
             }
             thread::sleep(Duration::from_millis(STDDELAY));
         }
@@ -192,22 +205,25 @@ fn main() {
             }
         }
         magnified = -1;
-        checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon);
+        if(checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon)){newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
         
     }
     
-    fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2roundwon: &mut u8){
+    fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2roundwon: &mut u8) -> bool{
         if *p1health <= 0{
             *p2roundwon+=1;
             *p1health = 4;
             *p2health = 4;
+            return true;
         }
         else if *p2health <= 0{
             *p1roundwon+=1;
             *p1health = 4;
             *p2health = 4;
+            return true;
         }
-
+        //newshells(&mutshells, p1inv, p2inv, p1roundwon, p2roundwon);
+        return false;
     }
 
     fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1roundwon: &u8, p2roundwon: &u8){
@@ -247,11 +263,14 @@ fn main() {
                 3 => p2inv.cuffs+=1,
                 _ => panic!("past rnd range")
             };
+            println!("added item");
         }
+        //thread::sleep(Duration::from_millis((amount*500) as u64));
+
     }
 }
 
-fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1turn: &bool, damage: &i8){
+fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1turn: &bool, damage: &i8, round: u8){
     clearscreen::clear().unwrap();
     if *p1turn{
         println!("    TURN    PLAYER 1:");
@@ -266,6 +285,7 @@ fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1t
         println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs);
 
     }
+    println!("\n           ROUND: {}", round+1);
     if *damage > 1{
         println!("\nDOUBLE DAMAGE!");
     }
