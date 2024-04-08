@@ -16,8 +16,8 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 4, cuffs: 0, durrys: 0};
-    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 4, cuffs: 0, durrys: 0};
+    let mut p1inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
+    let mut p2inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:i8 = 4;
     let mut p2health:i8 = 4;
@@ -42,7 +42,7 @@ fn main() {
         println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: skips opponents turn [D]URRY: restore 1 health");
         println!("[S]ELF: shoot self, get an extra turn if blank");
         println!("[O]PPONENT: shoot opponent\n");
-        println!("shells: {:?}    shells len {}", shells, shells.len());
+        //println!("shells: {:?}    shells len {}", shells, shells.len());
         print!("COMMAND: ");
         std::io::stdout().flush().unwrap();
 
@@ -66,6 +66,7 @@ fn main() {
         }
         else{
             sheindx = magnified as usize;
+            magnified = -1;
         }
         if buff == 'b'{
             if p1turn{
@@ -216,7 +217,6 @@ fn main() {
                 println!(".");
                 std::io::stdout().flush().unwrap();
                 thread::sleep(Duration::from_millis(1000));
-                let sheindx:usize = thread_rng().gen_range(0..shells.len());
                 if shells[sheindx]{
                     println!("BANG!");
                     if buff == 's'{p2health-=damage;}
