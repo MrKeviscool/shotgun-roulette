@@ -19,8 +19,8 @@ fn main() {
     let mut p1inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
     let mut p2inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
     let mut shells:Vec<bool> = Vec::new();
-    let mut p1health:i8 = 4;
-    let mut p2health:i8 = 4;
+    let mut p1health:i8 = 1;
+    let mut p2health:i8 = 1;
     let mut p1turn:bool = true;
     let mut damage: i8 = 1;
     let mut magnified:i8 = -1;
@@ -36,6 +36,7 @@ fn main() {
             else{
                 endgame(false);
             }
+            break;
         }
 
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage, p1roundwon+p2roundwon);
@@ -327,9 +328,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             4 => p1inv.durrys+=1,
             _ => panic!("past rnd range")
         };
-        println!("added item");
     }
-    //thread::sleep(Duration::from_millis((amount*500) as u64));
 
 }
 
