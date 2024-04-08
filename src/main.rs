@@ -22,15 +22,17 @@ fn main() {
     let mut p2health:u8 = 4;
     let mut p1turn:bool = true;
     let mut damage: u8 = 1;
+    let mut magnified:i8 = -1;
     newshells(&mut shells);
     loop{
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage);
-        println!("{:?}", shells);
-        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health, &mut damage);
+        println!("{:?}", shells);/// debug
+        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health, &mut damage, &mut magnified);
     }
 }
 
-fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8, damage: &mut u8){
+fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8, damage: &mut u8, magnified: &mut i8){
+    const STDDELAY:u64 = 1300;
     println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN");
     println!("[S]ELF: shoot self, get an extra turn if blank");
     println!("[O]PPONENT: shoot opponent\n");
@@ -49,13 +51,13 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         print!("enter a valid option: ");
         std::io::stdout().flush().unwrap();
     };
-    let sheindx:usize = thread_rng().gen_range(0..shells.len());
+    let mut sheindx:usize = thread_rng().gen_range(0..shells.len());
     
     if buff == 'b'{
         if *p1turn{
             if p1inv.beers <= 0{
                 println!("not enough beer");
-                thread::sleep(Duration::from_millis(1300));
+                thread::sleep(Duration::from_millis(STDDELAY));
                 return;
             }
             p1inv.beers -=1;
@@ -63,13 +65,13 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         else {
             if p2inv.beers <= 0{
                 println!("not enough beer");
-                thread::sleep(Duration::from_millis(1300));
+                thread::sleep(Duration::from_millis(STDDELAY));
                 return;
             }
             p2inv.beers -=1;
         }
         println!("the shell was {}", shells.remove(sheindx));
-        thread::sleep(Duration::from_millis(1300));
+        thread::sleep(Duration::from_millis(STDDELAY));
         if shells.len() == 0{newshells(shells);}
         return;
     }
@@ -78,7 +80,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         if *p1turn{
             if p1inv.knives <= 0{
                 println!("not enough knives");
-                thread::sleep(Duration::from_millis(1300));
+                thread::sleep(Duration::from_millis(STDDELAY));
                 return;
             }
             p1inv.knives-=1;
@@ -87,7 +89,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         else{
             if p2inv.knives <= 0{
                 println!("not enough knives");
-                thread::sleep(Duration::from_millis(1300));
+                thread::sleep(Duration::from_millis(STDDELAY));
                 return;
             }
             p2inv.knives-=1;
@@ -95,6 +97,13 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         }
         return;
     }
+
+    if buff == 'm'{
+        println!("there is a {} shell in the chamber", shells[sheindx]);
+        thread::sleep(Duration::from_millis(STDDELAY));
+        
+    }
+
     if *p1turn{
         *p1turn = false;
         if buff == 's'|| buff =='o' {
