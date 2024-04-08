@@ -24,6 +24,8 @@ fn main() {
     let mut damage: u8 = 1;
     let mut magnified:i8 = -1;
     let mut cuffed = false;
+    let mut p1roundwon: u8 = 0;
+    let mut p2roundwon: u8 = 0;
     newshells(&mut shells);
     loop{
 
@@ -193,6 +195,17 @@ fn main() {
         
     }
     
+    fn checkhealths(p1health: &mut u8, p2health: &mut u8, p1roundwon: &mut u8, p2roundwon: &mut u8){
+        if *p1health <= 0{
+            *p2roundwon+=1;
+        }
+        else if *p2health <= 0{
+            *p1roundwon+=1;
+        }
+        *p1health = 4;
+        *p2health = 4;
+    }
+
     fn newshells(shells: &mut Vec<bool>){
         clearscreen::clear().unwrap();
         println!("loading shells...");
@@ -234,5 +247,7 @@ fn displayscreen(p1health: &u8, p2health: &u8, p1inv: &Items, p2inv: &Items, p1t
     if *damage > 1{
         println!("\nDOUBLE DAMAGE!");
     }
-    println!("\n");
+    else{
+        println!("\n");
+    }
 }
