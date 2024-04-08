@@ -51,7 +51,13 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         print!("enter a valid option: ");
         std::io::stdout().flush().unwrap();
     };
-    let mut sheindx:usize = thread_rng().gen_range(0..shells.len());
+    let mut sheindx:usize;
+    if *magnified < 0{
+        sheindx = thread_rng().gen_range(0..shells.len());
+    }
+    else{
+        sheindx = *magnified as usize;
+    }
     
     if buff == 'b'{
         if *p1turn{
@@ -99,9 +105,10 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
     }
 
     if buff == 'm'{
-        println!("there is a {} shell in the chamber", shells[sheindx]);
+        *magnified = sheindx as i8;
+        println!("there is a {} shell in the chamber", shells[*magnified as usize]);
         thread::sleep(Duration::from_millis(STDDELAY));
-        
+        return;
     }
 
     if *p1turn{
@@ -170,6 +177,7 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
             return;
         }
     }
+    *magnified = -1;
     
 }
 
