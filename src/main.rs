@@ -23,15 +23,16 @@ fn main() {
     let mut p1turn:bool = true;
     let mut damage: u8 = 1;
     let mut magnified:i8 = -1;
+    let mut cuffed = false;
     newshells(&mut shells);
     loop{
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage);
         println!("{:?}", shells);/// debug
-        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health, &mut damage, &mut magnified);
+        decidefate(&mut shells, &mut p1inv, &mut p2inv, &mut p1turn, &mut p1health, &mut p2health, &mut damage, &mut magnified, &mut cuffed);
     }
 }
 
-fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8, damage: &mut u8, magnified: &mut i8){
+fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1turn: &mut bool, p1health: &mut u8, p2health: &mut u8, damage: &mut u8, magnified: &mut i8, cuffed: &mut bool){
     const STDDELAY:u64 = 1300;
     println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN");
     println!("[S]ELF: shoot self, get an extra turn if blank");
@@ -110,10 +111,22 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         thread::sleep(Duration::from_millis(STDDELAY));
         return;
     }
-
+    if buff == 'c'{
+        *cuffed = true;
+        if *p1turn{
+            println!("player 2 cuffed, skip their turn");
+        }
+        else{
+            println!("player 1 cuffed, skip their turn");
+        }
+        thread::sleep(Duration::from_millis(STDDELAY));
+    }
     if *p1turn{
-        *p1turn = false;
+        if !*cuffed{
+            *p1turn = false;
+        }
         if buff == 's'|| buff =='o' {
+            *cuffed = false;
             print!(".");
             std::io::stdout().flush().unwrap();
             thread::sleep(Duration::from_millis(1000));
@@ -145,8 +158,11 @@ fn decidefate(shells: &mut Vec<bool>, p1inv: &mut items, p2inv: &mut items, p1tu
         }
     }
     else{
-        *p1turn = true;
+        if !*cuffed{
+            *p1turn = true;
+        }
         if buff == 's'|| buff =='o' {
+            *cuffed = false;
             print!(".");
             std::io::stdout().flush().unwrap();
             thread::sleep(Duration::from_millis(1000));
