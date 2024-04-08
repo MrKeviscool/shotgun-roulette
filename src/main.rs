@@ -16,11 +16,11 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
-    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
+    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 4, cuffs: 0, durrys: 0};
+    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 4, cuffs: 0, durrys: 0};
     let mut shells:Vec<bool> = Vec::new();
-    let mut p1health:i8 = 1;
-    let mut p2health:i8 = 1;
+    let mut p1health:i8 = 4;
+    let mut p2health:i8 = 4;
     let mut p1turn:bool = true;
     let mut damage: i8 = 1;
     let mut magnified:i8 = -1;
@@ -29,20 +29,28 @@ fn main() {
     let mut p2roundwon: u8 = 0;
     newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
     loop{
+        if p1roundwon+p2roundwon > 2{
+            if p1roundwon > p2roundwon{
+                endgame(true);
+            }
+            else{
+                endgame(false);
+            }
+        }
 
         displayscreen(&p1health, &p2health, &p1inv, &p2inv, &p1turn, &damage, p1roundwon+p2roundwon);
-        println!("{:?}", shells);// debug
-
-        println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: SKIPS OTHER PLAYERS TURN [D]URRY: restore 1 health");
+        println!("[B]EER: racks gun [K]NIFE: deals double damage [M]AGNIFY: says whats in chamber [C]UFFS: skips opponents turn [D]URRY: restore 1 health");
         println!("[S]ELF: shoot self, get an extra turn if blank");
         println!("[O]PPONENT: shoot opponent\n");
+        println!("shells: {:?}    shells len {}", shells, shells.len());
         print!("COMMAND: ");
         std::io::stdout().flush().unwrap();
+
         let mut buff: String = String::new();
         let buff:char = loop{
             buff.clear();
             std::io::stdin().read_line(&mut buff).unwrap();
-            buff.pop();
+            buff.pop(); 
             let buff: char = buff.to_ascii_lowercase().chars().nth(0).unwrap();
             match buff{
                 'b'|'k'|'m'|'c'|'s'|'o'|'d' => break buff,
@@ -51,6 +59,7 @@ fn main() {
             print!("enter a valid option: ");
             std::io::stdout().flush().unwrap();
         };
+
         let sheindx:usize;
         if magnified < 0{
             sheindx = thread_rng().gen_range(0..shells.len());
@@ -58,7 +67,6 @@ fn main() {
         else{
             sheindx = magnified as usize;
         }
-        
         if buff == 'b'{
             if p1turn{
                 if p1inv.beers <= 0{
@@ -124,6 +132,10 @@ fn main() {
         if buff == 'c'{
             cuffed = true;
             if p1turn{
+                if p1inv.cuffs <= 0{
+                    println!("not enough cuffs");
+                    continue;
+                }
                 println!("player 2 cuffed, skip their turn");
                 p1inv.cuffs-=1;
             }
@@ -150,6 +162,7 @@ fn main() {
                 println!("NOT ENOUGH DURRYS");
             }
             thread::sleep(Duration::from_millis(STDDELAY));
+            continue;
         }
 
         if p1turn{
@@ -230,82 +243,22 @@ fn main() {
         
     }
     
-    fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2roundwon: &mut u8) -> bool{
-        if *p1health <= 0{
-            *p2roundwon+=1;
-            *p1health = 4;
-            *p2health = 4;
-            return true;
-        }
-        else if *p2health <= 0{
-            *p1roundwon+=1;
-            *p1health = 4;
-            *p2health = 4;
-            return true;
-        }
-        //newshells(&mutshells, p1inv, p2inv, p1roundwon, p2roundwon);
-        return false;
-    }
 
-    fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1roundwon: &u8, p2roundwon: &u8){
-        clearscreen::clear().unwrap();
-        println!("loading shells...");
-        let amount:usize = thread_rng().gen_range(2..=8);
-        if amount == 2{
-            shells.push(true);
-            shells.push(false);
-            println!("true false");
-            thread::sleep(Duration::from_secs(1));
-            return;
-        }
-        for _ in 0..amount{
-            shells.push(rand::random());
-        }
-        thread::sleep(Duration::from_secs(1));
-        for i in shells{
-            print!("{} ", i);
-        }
-        std::io::stdout().flush().unwrap();
-        thread::sleep(Duration::from_millis((amount*500) as u64));
-        if p1roundwon+p2roundwon == 0 {return;} 
-        for _ in 0..((p1roundwon+p2roundwon)*2){
-            /////ADD CODE TO ADD RANDOM ITEMS TO BOTH PLAYERS INV
-            match thread_rng().gen_range(0..=4) {
-                0 => p1inv.beers+=1,
-                1 => p1inv.knives+=1,
-                2 => p1inv.magnify+=1,
-                3 => p1inv.cuffs+=1,
-                4 => p1inv.durrys+=1,
-                _ => panic!("past rnd range")
-            };
-            match thread_rng().gen_range(0..=4) {
-                0 => p2inv.beers+=1,
-                1 => p2inv.knives+=1,
-                2 => p2inv.magnify+=1,
-                3 => p2inv.cuffs+=1,
-                4 => p1inv.durrys+=1,
-                _ => panic!("past rnd range")
-            };
-            println!("added item");
-        }
-        //thread::sleep(Duration::from_millis((amount*500) as u64));
-
-    }
 }
 
 fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1turn: &bool, damage: &i8, round: u8){
     clearscreen::clear().unwrap();
     if *p1turn{
         println!("    TURN    PLAYER 1:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses, {}x cuffs, {}x durryss", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses, {}x cuffs, {}x durrys", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
         println!("\n         PLAYER 2:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durrys", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
     }
     else{
         println!("           PLAYER 1:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durrys", p1health, p1inv.beers, p1inv.knives, p1inv.magnify, p1inv.cuffs, p1inv.durrys);
         println!("\n    TURN    PLAYER 2:");
-        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durryss", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
+        println!("HEALTH: {}        ITEMS: {}x beers, {}x knives, {}x magnifying glasses {}x cuffs, {}x durrys", p2health, p2inv.beers, p2inv.knives, p2inv.magnify, p2inv.cuffs, p2inv.durrys);
 
     }
     println!("\n           ROUND: {}", round+1);
@@ -314,5 +267,77 @@ fn displayscreen(p1health: &i8, p2health: &i8, p1inv: &Items, p2inv: &Items, p1t
     }
     else{
         println!("\n");
+    }
+
+}
+
+fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2roundwon: &mut u8) -> bool{
+    if *p1health <= 0{
+        *p2roundwon+=1;
+        *p1health = 4;
+        *p2health = 4;
+        return true;
+    }
+    else if *p2health <= 0{
+        *p1roundwon+=1;
+        *p1health = 4;
+        *p2health = 4;
+        return true;
+    }
+    return false;
+}
+
+fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1roundwon: &u8, p2roundwon: &u8){
+    clearscreen::clear().unwrap();
+    println!("loading shells...");
+    let amount:usize = thread_rng().gen_range(2..=8);
+    if amount == 2{
+        shells.push(true);
+        shells.push(false);
+        println!("true false");
+        thread::sleep(Duration::from_secs(1));
+        return;
+    }
+    for _ in 0..amount{
+        shells.push(rand::random());
+    }
+    thread::sleep(Duration::from_secs(1));
+    for i in shells{
+        print!("{} ", i);
+    }
+
+    std::io::stdout().flush().unwrap();
+    thread::sleep(Duration::from_millis((amount*500) as u64));
+    if p1roundwon+p2roundwon == 0 {return;} 
+    for _ in 0..((p1roundwon+p2roundwon)*2){
+        /////ADD CODE TO ADD RANDOM ITEMS TO BOTH PLAYERS INV
+        match thread_rng().gen_range(0..=4) {
+            0 => p1inv.beers+=1,
+            1 => p1inv.knives+=1,
+            2 => p1inv.magnify+=1,
+            3 => p1inv.cuffs+=1,
+            4 => p1inv.durrys+=1,
+            _ => panic!("past rnd range")
+        };
+        match thread_rng().gen_range(0..=4) {
+            0 => p2inv.beers+=1,
+            1 => p2inv.knives+=1,
+            2 => p2inv.magnify+=1,
+            3 => p2inv.cuffs+=1,
+            4 => p1inv.durrys+=1,
+            _ => panic!("past rnd range")
+        };
+        println!("added item");
+    }
+    //thread::sleep(Duration::from_millis((amount*500) as u64));
+
+}
+
+fn endgame(p1won: bool){
+    if p1won{
+        println!("PLAYER ONE WON!!!");
+    }
+    else{
+        println!("PLAYER TWO WON!!!");
     }
 }
