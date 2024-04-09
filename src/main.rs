@@ -16,11 +16,11 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
-    let mut p2inv:Items = Items{beers: 1, knives: 2, magnify: 4, cuffs: 1, durrys: 1};
+    let mut p1inv:Items = Items{beers: 9, knives: 9, magnify: 9, cuffs: 9, durrys: 9};
+    let mut p2inv:Items = Items{beers: 9, knives: 9, magnify: 9, cuffs: 9, durrys: 9};
     let mut shells:Vec<bool> = Vec::new();
-    let mut p1health:i8 = 1;
-    let mut p2health:i8 = 1;
+    let mut p1health:i8 = 4;
+    let mut p2health:i8 = 4;
     let mut p1turn:bool = true;
     let mut damage: i8 = 1;
     let mut magnified:i8 = -1;
@@ -59,6 +59,25 @@ fn main() {
             sheindx = magnified as usize;
             magnified = -1;
         }
+
+        if buff == 'm'{
+            if p1turn && p1inv.magnify > 0{
+                magnified = sheindx as i8;
+                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                p1inv.magnify-=1;
+            }
+            else if !p1turn && p2inv.magnify > 0{
+                magnified = sheindx as i8;
+                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                p2inv.magnify-=1;
+            }
+            else{
+                println!("NOT ENOUGH MAGNIFYING GLASSES");
+            }
+            thread::sleep(Duration::from_millis(STDDELAY));
+            continue;
+        }
+
         if buff == 'b'{
             if p1turn{
                 if p1inv.beers <= 0{
@@ -104,36 +123,19 @@ fn main() {
             continue;
         }
     
-        if buff == 'm'{
-            if p1turn && p1inv.magnify > 0{
-                magnified = sheindx as i8;
-                println!("there is a {} shell in the chamber", shells[magnified as usize]);
-                p1inv.magnify-=1;
-            }
-            else if !p1turn && p2inv.magnify > 0{
-                magnified = sheindx as i8;
-                println!("there is a {} shell in the chamber", shells[magnified as usize]);
-                p2inv.magnify-=1;
-            }
-            else{
-                println!("NOT ENOUGH MAGNIFYING GLASSES");
-            }
-            thread::sleep(Duration::from_millis(STDDELAY));
-            continue;
-        }
         if buff == 'c'{
-            cuffed = true;
-            if p1turn{
-                if p1inv.cuffs <= 0{
-                    println!("not enough cuffs");
-                    continue;
-                }
-                println!("player 2 cuffed, skip their turn");
+            if p1turn && p1inv.cuffs > 0{
+                cuffed = true;
+                println!("player two cuffed, skip their turn");
                 p1inv.cuffs-=1;
             }
-            else{
-                println!("player 1 cuffed, skip their turn");
+            else if !p1turn && p2inv.cuffs > 0{
+                cuffed = true;
+                println!("player one cuffed, skip their turn");
                 p2inv.cuffs-=1;
+            }
+            else{
+                println!("not enough cuffs");
             }
             thread::sleep(Duration::from_millis(STDDELAY));
             continue;
@@ -291,7 +293,7 @@ fn checkhealths(p1health: &mut i8, p2health: &mut i8, p1roundwon: &mut u8, p2rou
 fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1roundwon: &u8, p2roundwon: &u8){
     clearscreen::clear().unwrap();
     println!("loading shells...");
-    let amount:usize = thread_rng().gen_range(2..=8);
+    let amount:usize = thread_rng().gen_range(2..=6);
     if amount == 2{
         shells.push(true);
         shells.push(false);
