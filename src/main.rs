@@ -1,6 +1,6 @@
 use core::time::Duration;
 use std::{io::Write, thread};
-use rand::{self, thread_rng, Rng};
+use rand::{self, thread_rng, Rng, seq::SliceRandom};
 use clearscreen;
 
 //true = live
@@ -305,11 +305,13 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
         shells.push(rand::random());
     }
     thread::sleep(Duration::from_secs(1));
-    for i in shells{
+    for i in shells.iter(){
         print!("{} ", i);
     }
 
     std::io::stdout().flush().unwrap();
+    shells.shuffle(&mut thread_rng());
+    println!("shells (shuffled): {:?}", shells);
     thread::sleep(Duration::from_millis((amount*500) as u64));
     if p1roundwon+p2roundwon == 0 {return;} 
     for _ in 0..((p1roundwon+p2roundwon)*2){
@@ -331,6 +333,8 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             _ => panic!("past rnd range")
         };
     }
+
+    thread::sleep(Duration::from_secs(2));
 
 }
 
