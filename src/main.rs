@@ -16,14 +16,13 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 9, knives: 9, magnify: 9, cuffs: 9, durrys: 9};
-    let mut p2inv:Items = Items{beers: 9, knives: 9, magnify: 9, cuffs: 9, durrys: 9};
+    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 9, durrys: 0};
+    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 9, durrys: 0};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:i8 = 4;
     let mut p2health:i8 = 4;
     let mut p1turn:bool = true;
     let mut damage: i8 = 1;
-    let mut magnified:i8 = -1;
     let mut cuffed = false;
     let mut p1roundwon: u8 = 0;
     let mut p2roundwon: u8 = 0;
@@ -50,25 +49,13 @@ fn main() {
             print!("enter a valid option: ");
             std::io::stdout().flush().unwrap();
         };
-
-        let sheindx:usize;
-        if magnified < 0{
-            sheindx = thread_rng().gen_range(0..shells.len());
-        }
-        else{
-            sheindx = magnified as usize;
-            magnified = -1;
-        }
-
         if buff == 'm'{
             if p1turn && p1inv.magnify > 0{
-                magnified = sheindx as i8;
-                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                println!("there is a {} shell in the chamber", shells[shells.len()-1]);
                 p1inv.magnify-=1;
             }
             else if !p1turn && p2inv.magnify > 0{
-                magnified = sheindx as i8;
-                println!("there is a {} shell in the chamber", shells[magnified as usize]);
+                println!("there is a {} shell in the chamber", shells[shells.len()-1]);
                 p2inv.magnify-=1;
             }
             else{
@@ -77,34 +64,30 @@ fn main() {
             thread::sleep(Duration::from_millis(STDDELAY));
             continue;
         }
-
+        
         if buff == 'b'{
-            if p1turn{
-                if p1inv.beers <= 0{
-                    println!("not enough beer");
-                    thread::sleep(Duration::from_millis(STDDELAY));
-                    continue;
-                }
-                p1inv.beers -=1;
+            if p1turn && p1inv.beers > 0{
+                println!("the shell was {}", shells.pop().unwrap());
+                p1inv.beers-=1;
             }
-            else {
-                if p2inv.beers <= 0{
-                    println!("not enough beer");
-                    thread::sleep(Duration::from_millis(STDDELAY));
-                    continue;
-                }
-                p2inv.beers -=1;
+            else if !p1turn && p2inv.beers > 0{
+                println!("the shell was {}", shells.pop().unwrap());
+                p2inv.beers-=1;
             }
-            println!("the shell was {}", shells.remove(sheindx));
+            else{
+                println!("not enough beer");
+            }
+            if shells.len() <= 0{
+                newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
+            }
             thread::sleep(Duration::from_millis(STDDELAY));
-            if shells.len() == 0{newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);}
             continue;
         }
     
         if buff == 'k'{
             if p1turn{
                 if p1inv.knives <= 0{
-                    println!("NOT ENOUGH KNIVES");
+                    println!("not enough knives");
                     thread::sleep(Duration::from_millis(STDDELAY));
                     continue;
                 }
@@ -113,7 +96,7 @@ fn main() {
             }
             else{
                 if p2inv.knives <= 0{
-                    println!("NOT ENOUGH KNIVES");
+                    println!("not enough knives");
                     thread::sleep(Duration::from_millis(STDDELAY));
                     continue;
                 }
@@ -175,7 +158,7 @@ fn main() {
                 std::io::stdout().flush().unwrap();
                 thread::sleep(Duration::from_millis(1000));
     
-                if shells[sheindx]{
+                if shells.pop().unwrap(){
                     println!("BANG!");
                     if buff == 's'{p1health-=damage;}
                     else{p2health-=damage;}
@@ -186,7 +169,6 @@ fn main() {
                         p1turn = true;
                     }
                 }
-                shells.remove(sheindx);
                 damage = 1;
                 thread::sleep(Duration::from_millis(1500));
             }
@@ -210,7 +192,8 @@ fn main() {
                 println!(".");
                 std::io::stdout().flush().unwrap();
                 thread::sleep(Duration::from_millis(1000));
-                if shells[sheindx]{
+    
+                if shells.pop().unwrap(){
                     println!("BANG!");
                     if buff == 's'{p2health-=damage;}
                     else{p1health-=damage;}
@@ -221,7 +204,6 @@ fn main() {
                         p1turn = false;
                     }
                 }
-                shells.remove(sheindx);
                 damage = 1;
                 thread::sleep(Duration::from_millis(1500));
             }
@@ -230,8 +212,7 @@ fn main() {
                 continue;
             }
         }
-        magnified = -1;
-        if  checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon){
+        if checkhealths(&mut p1health, &mut p2health, &mut p1roundwon, &mut p2roundwon){
             if p1roundwon+p2roundwon > 2{
                 if p1roundwon > p2roundwon{
                     endgame(true);
@@ -239,7 +220,7 @@ fn main() {
                 else{
                     endgame(false);
                 }
-                break;
+                continue;
             }    
             newshells(&mut shells, &mut p1inv, &mut p2inv, &p1roundwon, &p2roundwon);
         }
@@ -311,7 +292,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
 
     std::io::stdout().flush().unwrap();
     shells.shuffle(&mut thread_rng());
-    println!("shells (shuffled): {:?}", shells);
+
     thread::sleep(Duration::from_millis((amount*500) as u64));
     if p1roundwon+p2roundwon == 0 {return;} 
     for _ in 0..((p1roundwon+p2roundwon)*2){
@@ -333,8 +314,6 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             _ => panic!("past rnd range")
         };
     }
-
-    thread::sleep(Duration::from_secs(2));
 
 }
 
