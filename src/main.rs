@@ -3,9 +3,7 @@ use std::{io::Write, thread};
 use rand::{self, thread_rng, Rng, seq::SliceRandom};
 use clearscreen;
 
-//true = live
-//switch to fastrand for smalr exe
-const STDDELAY:u64 = 1300; //1300
+const STDDELAY:u64 = 1500; //1300
 struct Items{
     beers:u8,
     knives:u8,
@@ -16,8 +14,8 @@ struct Items{
 
 
 fn main() {
-    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 9, durrys: 0};
-    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 9, durrys: 0};
+    let mut p1inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
+    let mut p2inv:Items = Items{beers: 0, knives: 0, magnify: 0, cuffs: 0, durrys: 0};
     let mut shells:Vec<bool> = Vec::new();
     let mut p1health:i8 = 4;
     let mut p2health:i8 = 4;
