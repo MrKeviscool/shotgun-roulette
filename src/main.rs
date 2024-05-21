@@ -274,8 +274,14 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
     println!("loading shells...");
     let amount:usize = thread_rng().gen_range(2..=6);
     if amount == 2{
-        shells.push(true);
-        shells.push(false);
+        if rand::random(){
+            shells.push(true);
+            shells.push(false);
+        }
+        else{
+            shells.push(false);
+            shells.push(true);
+        }
         println!("true false");
         thread::sleep(Duration::from_secs(1));
         return;
@@ -294,8 +300,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
     thread::sleep(Duration::from_millis((amount*500) as u64));
     if p1roundwon+p2roundwon == 0 {return;} 
     for _ in 0..((p1roundwon+p2roundwon)*2){
-        /////ADD CODE TO ADD RANDOM ITEMS TO BOTH PLAYERS INV
-        match thread_rng().gen_range(0..=4) {
+        match thread_rng().gen_range(0..=5) {
             0 => p1inv.beers+=1,
             1 => p1inv.knives+=1,
             2 => p1inv.magnify+=1,
@@ -303,7 +308,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             4 => p1inv.durrys+=1,
             _ => panic!("past rnd range")
         };
-        match thread_rng().gen_range(0..=4) {
+        match thread_rng().gen_range(0..=5) {
             0 => p2inv.beers+=1,
             1 => p2inv.knives+=1,
             2 => p2inv.magnify+=1,
