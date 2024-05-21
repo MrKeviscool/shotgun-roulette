@@ -300,7 +300,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
     thread::sleep(Duration::from_millis((amount*500) as u64));
     if p1roundwon+p2roundwon == 0 {return;} 
     for _ in 0..((p1roundwon+p2roundwon)*2){
-        match thread_rng().gen_range(0..=5) {
+        match thread_rng().gen_range(0..=4) {
             0 => p1inv.beers+=1,
             1 => p1inv.knives+=1,
             2 => p1inv.magnify+=1,
@@ -308,7 +308,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             4 => p1inv.durrys+=1,
             _ => panic!("past rnd range")
         };
-        match thread_rng().gen_range(0..=5) {
+        match thread_rng().gen_range(0..=4) {
             0 => p2inv.beers+=1,
             1 => p2inv.knives+=1,
             2 => p2inv.magnify+=1,
