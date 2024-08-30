@@ -1,5 +1,5 @@
 use core::time::Duration;
-use std::{io::Write, thread};
+use std::{io::Write, process::exit, thread};
 use rand::{self, thread_rng, Rng, seq::SliceRandom};
 use clearscreen;
 
@@ -41,7 +41,7 @@ fn main() {
             buff.pop(); 
             let buff: char = buff.to_ascii_lowercase().chars().nth(0).unwrap();
             match buff{
-                'b'|'k'|'m'|'c'|'s'|'o'|'d' => break buff,
+                'b'|'k'|'m'|'c'|'s'|'o'|'d'|'q' => break buff,
                 _ => ()
             };
             print!("enter a valid option: ");
@@ -139,7 +139,9 @@ fn main() {
             thread::sleep(Duration::from_millis(STDDELAY));
             continue;
         }
-
+        if buff == 'q'{
+            exit(0);
+        }
         if p1turn{
             if !cuffed{
                 p1turn = false;
@@ -283,7 +285,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
             shells.push(true);
         }
         println!("true false");
-        thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_secs(2));
         return;
     }
     for _ in 0..amount{
@@ -297,7 +299,7 @@ fn newshells(shells: &mut Vec<bool>, p1inv: &mut Items, p2inv: &mut Items, p1rou
     std::io::stdout().flush().unwrap();
     shells.shuffle(&mut thread_rng());
 
-    thread::sleep(Duration::from_millis((amount*500) as u64));
+    thread::sleep(Duration::from_millis((amount*750) as u64));
     if p1roundwon+p2roundwon == 0 {return;} 
     for _ in 0..((p1roundwon+p2roundwon)*2){
         match thread_rng().gen_range(0..=4) {
